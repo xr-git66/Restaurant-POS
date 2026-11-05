@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop POS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%80%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#111113;--card:rgba(28,28,31,.9);--card2:#26262a;--tx:#f2f2f2;--mut:#9a9aa2;--acc:#f6b100;--blue:#2563eb;--green:#22c55e;--red:#ef4444}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:78px}
+input,select,button{font-size:15px;font-family:inherit}
+input,select{padding:9px;border:1px solid #3a3a40;border-radius:8px;background:var(--card2);color:var(--tx);width:100%}
+button{cursor:pointer;border:0;border-radius:8px;background:var(--card2);color:var(--tx);padding:9px 14px}
+.view{display:none;padding:16px;max-width:1250px;margin:auto}.view.active{display:block}
+.card{background:var(--card);border-radius:12px;padding:14px}
+h2,h3{margin:0 0 10px}small,.mut{color:var(--mut)}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.home{display:grid;grid-template-columns:1.7fr 1fr;gap:14px}
+@media(max-width:850px){.home,.menuwrap{grid-template-columns:1fr!important}}
+.stat b{display:block;font-size:30px;margin:8px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0}
+.av{width:42px;height:42px;border-radius:10px;background:var(--acc);color:#222;font-weight:bold;display:flex;align-items:center;justify-content:center;flex:none}
+.orow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #2a2a2e}
+.orow .mid{flex:1}.badge{border:1px solid var(--acc);color:var(--acc);border-radius:8px;padding:3px 8px;font-size:13px;white-space:nowrap}
+.st{font-size:13px;text-align:right}
+.pop{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:10px;padding:8px;margin-bottom:8px}
+.pop img,.pop .ph{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#333;display:flex;align-items:center;justify-content:center}
+.pop small{display:block}.rk{color:var(--mut);width:22px}
+.menuwrap{display:grid;grid-template-columns:1fr 340px;gap:14px}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}
+.cat{border-radius:10px;padding:14px;color:#fff;cursor:pointer;min-height:70px;border:2px solid transparent}
+.cat.on{border-color:#fff}.cat small{color:#ffffffaa;display:block;margin-top:14px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:12px}
+.pcard{background:var(--card);border-radius:10px;padding:12px}.pcard.out{opacity:.4}
+.pcard img{width:100%;height:70px;object-fit:cover;border-radius:8px;margin:6px 0}
+.eimg{height:70px;border-radius:8px;margin:6px 0;display:flex;align-items:center;justify-content:center;font-size:42px}
+.cartbtn{background:#14532d;padding:6px 9px}.step{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:8px;padding:4px 8px}
+.step button{background:none;color:var(--acc);padding:2px 8px;font-size:18px}
+.panel{background:var(--card);border-radius:12px;padding:14px;position:sticky;top:10px;align-self:start}
+.line{background:var(--card2);border-radius:10px;padding:10px;margin-bottom:8px}
+.btn{background:var(--blue)}.btn.y{background:var(--acc);color:#222;font-weight:bold}.btn.g{background:#16a34a}.btn.r{background:#b91c1c}
+.pay button{flex:1}.pay button.on{background:var(--acc);color:#222}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}.tabs button.on{background:var(--acc);color:#222}
+.ocard{background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px}
+.ocard .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.tbl{background:var(--card);border-radius:12px;padding:18px;text-align:center;cursor:pointer;border:2px solid #2a2a2e}
+.tbl.busy{border-color:var(--acc)}
+table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #2a2a2e;text-align:left;font-size:14px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+.empty{color:var(--mut);padding:10px 0}
+#bottom{position:fixed;left:0;right:0;bottom:0;background:#0b0b0c;display:flex;justify-content:space-around;align-items:center;padding:8px;border-top:1px solid #2a2a2e;z-index:20}
+#bottom button{background:none;color:var(--mut);flex:1}#bottom button.on{color:#fff;background:var(--card2)}
+#bottom .fab{flex:none;width:54px;height:54px;border-radius:50%;background:var(--acc);color:#222;font-size:24px;padding:0;margin-top:-26px}
+#toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:10px 18px;border-radius:8px;display:none;z-index:99}
+#receipt{display:none}
+@media print{body>*:not(#receipt){display:none!important}body{padding:0;background:#fff}#receipt{display:block;position:static;width:280px;font-family:monospace;font-size:12px;color:#000;background:#fff}}
+
+#bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
+  background:radial-gradient(ellipse at 20% 0%,#3a1d0e 0%,transparent 55%),radial-gradient(ellipse at 100% 100%,#2b1405 0%,transparent 50%),linear-gradient(160deg,#17110d,#0e0e11 60%)}
+#bg .orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.28;animation:drift 22s ease-in-out infinite alternate}
+#bg .o1{width:360px;height:360px;background:#f59e0b;left:-80px;top:10%}
+#bg .o2{width:300px;height:300px;background:#dc2626;right:-60px;top:35%;animation-duration:28s}
+#bg .o3{width:340px;height:340px;background:#b45309;left:40%;bottom:-120px;animation-duration:32s}
+#bg .f{position:absolute;bottom:-60px;font-size:34px;opacity:0;animation:floatup linear infinite;filter:saturate(.7)}
+#bg .steam{position:absolute;bottom:-40px;width:60px;height:140px;border-radius:50%;background:radial-gradient(#ffffff22,transparent 70%);filter:blur(14px);opacity:0;animation:steam 9s ease-in infinite}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(90px,-60px) scale(1.25)}}
+@keyframes floatup{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.16}90%{opacity:.16}100%{transform:translateY(-115vh) rotate(25deg);opacity:0}}
+@keyframes steam{0%{transform:translateY(0) scaleX(1);opacity:0}30%{opacity:.5}100%{transform:translateY(-70vh) scaleX(2.2);opacity:0}}
+@media(prefers-reduced-motion:reduce){#bg *{animation:none!important}}
+.card,.panel,.pcard,.ocard,.tbl{backdrop-filter:blur(6px)}
+</style></head>
+<body>
+<div id="loginBox" style="position:fixed;inset:0;background:#111113;display:flex;align-items:center;justify-content:center;z-index:9999">
+  <div class="card" style="width:300px;display:flex;flex-direction:column;gap:10px">
+    <h3>Shop login</h3>
+    <input id="loginEmail" type="email" placeholder="Email"><input id="loginPass" type="password" placeholder="Password">
+    <button class="btn" id="loginBtn">Log in</button><div id="loginMsg" style="color:#f87171;font-size:13px"></div>
+  </div></div>
+<div id="bg"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="steam" style="left:12%;animation-delay:-0s"></span><span class="steam" style="left:38%;animation-delay:-3s"></span><span class="steam" style="left:63%;animation-delay:-6s"></span><span class="steam" style="left:86%;animation-delay:-2s"></span><span class="f" style="left:4%;animation-duration:26s;animation-delay:-0s;font-size:28px">🍕</span><span class="f" style="left:12%;animation-duration:31s;animation-delay:-7s;font-size:34px">🍔</span><span class="f" style="left:20%;animation-duration:36s;animation-delay:-14s;font-size:40px">🍜</span><span class="f" style="left:28%;animation-duration:41s;animation-delay:-21s;font-size:46px">🍣</span><span class="f" style="left:36%;animation-duration:28s;animation-delay:-28s;font-size:30px">🥗</span><span class="f" style="left:44%;animation-duration:33s;animation-delay:-5s;font-size:36px">🍰</span><span class="f" style="left:52%;animation-duration:38s;animation-delay:-12s;font-size:42px">🍹</span><span class="f" style="left:60%;animation-duration:43s;animation-delay:-19s;font-size:48px">🍝</span><span class="f" style="left:68%;animation-duration:30s;animation-delay:-26s;font-size:32px">🍛</span><span class="f" style="left:76%;animation-duration:35s;animation-delay:-3s;font-size:38px">🥟</span><span class="f" style="left:84%;animation-duration:40s;animation-delay:-10s;font-size:44px">☕</span><span class="f" style="left:92%;animation-duration:27s;animation-delay:-17s;font-size:28px">🍤</span></div>
+<div id="toast"></div>
+<div id="paidBox" style="display:none;position:fixed;inset:0;background:#000b;z-index:9600;align-items:center;justify-content:center">
+  <div class="card" style="width:300px;text-align:center;padding:24px">
+    <div style="width:70px;height:70px;border-radius:50%;background:#16a34a;color:#fff;font-size:42px;line-height:70px;margin:0 auto 12px">&#10003;</div>
+    <h2 style="margin:0 0 6px">Payment done</h2><div class="mut" id="paidInfo"></div>
+    <button class="btn g" id="paidOk" style="margin-top:16px;width:100%">OK</button>
+  </div></div>
+<div id="previewBox" style="display:none;position:fixed;inset:0;background:#000b;z-index:9500;align-items:center;justify-content:center">
+  <div style="display:flex;flex-direction:column;gap:10px;max-height:94vh">
+    <div id="receiptPreview" style="background:#fff;color:#000;width:300px;padding:16px;font-family:monospace;font-size:12px;overflow:auto;border-radius:4px;box-shadow:0 8px 30px #000a"></div>
+    <div class="row"><button id="previewClose" style="flex:1">Close</button><button class="btn g" id="previewPrint" style="flex:1">Print</button></div>
+  </div></div>
+<div id="cashBox" style="display:none;position:fixed;inset:0;background:#000a;z-index:9000;align-items:center;justify-content:center">
+  <div class="card" style="width:320px"><h3>Cash received</h3><p class="mut" id="cashTotal"></p>
+    <input id="cashIn" type="number" min="0" step="0.01"><p>Change: <b id="cashChg">0.00</b></p>
+    <div class="row"><button id="cashCancel">Cancel</button><button class="btn g" id="cashOk">Confirm</button></div></div></div>
+
+<!-- HOME -->
+<section id="v-home" class="view active">
+  <div class="top"><div><h2 id="greet">Hello</h2><small>Give your best service to customers</small></div>
+    <div style="text-align:right"><b id="clock" style="font-size:24px"></b><br><small id="dateTxt"></small></div></div>
+  <div class="home"><div>
+    <div class="grid2">
+      <div class="card stat"><small>Total Earnings (today)</small><b id="earn">0</b><small id="earnPct"></small></div>
+      <div class="card stat"><small>In Progress</small><b id="inprog">0</b><small id="readyCnt"></small></div>
+    </div>
+    <div class="card" style="margin-top:12px"><div class="row"><h3>Recent Orders</h3><a href="#" data-act="nav" data-v="orders" style="color:#60a5fa">View all</a></div>
+      <input id="homeSearch" placeholder="Search recent orders (name or order no)"><div id="recent"></div></div>
+  </div>
+  <div class="card"><h3>Popular Dishes</h3><div id="popular"></div></div></div>
+</section>
+
+<!-- MENU / NEW ORDER -->
+<section id="v-menu" class="view">
+  <div class="menuwrap"><div>
+    <div class="top"><div style="display:flex;gap:10px;align-items:center"><button class="btn" data-act="nav" data-v="home">&larr;</button><h2 style="margin:0">Menu</h2></div>
+      <input id="search" placeholder="Search name or scan code..." style="max-width:260px"></div>
+    <div id="cats" class="cats"></div><div id="pgrid" class="pgrid"></div>
+  </div>
+  <div class="panel">
+    <div class="row"><div><input id="oName" placeholder="Customer name" style="margin-bottom:6px"></div><div class="av" id="oAv">CN</div></div>
+    <div class="grid2" style="margin-bottom:8px"><select id="oType"><option>Dine in</option><option>Takeaway</option><option>Delivery</option></select><input id="oTable" placeholder="Table no"></div>
+    <h3>Order Details</h3><div id="lines" style="max-height:300px;overflow:auto"></div>
+    <div class="row"><small id="itemsLbl">Items(0)</small><b id="sub">0</b></div>
+    <div class="row"><small id="taxLbl">Tax</small><b id="tax">0</b></div>
+    <div class="row" style="font-size:20px"><b>Total</b><b id="total">0</b></div>
+    <div class="row pay"><button data-act="setpay" data-m="cash" id="pcash" class="on">Cash</button><button data-act="setpay" data-m="online" id="ponline">Online</button></div>
+    <div class="row"><button class="btn" style="flex:1" data-act="printdraft">Print Receipt</button><button class="btn y" style="flex:1" data-act="place">Place Order</button></div>
+    <button class="btn g" style="width:100%" data-act="placepay">Place &amp; Pay now</button>
+    <button style="width:100%;margin-top:6px" data-act="clear">Clear</button>
+  </div></div>
+</section>
+
+<!-- ORDERS -->
+<section id="v-orders" class="view">
+  <div class="top"><h2>Orders</h2><input id="ordSearch" placeholder="Search name, order no, table" style="max-width:280px"></div>
+  <div class="tabs" id="ordTabs"></div><div id="ordList"></div>
+</section>
+
+<!-- TABLES -->
+<section id="v-tables" class="view"><h2>Tables</h2><div id="tblGrid" class="tables"></div></section>
+
+<!-- MORE -->
+<section id="v-more" class="view">
+  <div class="tabs" id="moreTabs"><button data-act="sub" data-s="products" class="on">Products</button><button data-act="sub" data-s="cats">Categories</button><button data-act="sub" data-s="hist">Sales history</button><button data-act="sub" data-s="set">Settings</button></div>
+  <div id="s-products" class="card sub">
+    <div class="row"><h3 id="pTitle">Add item</h3><button data-act="sample">Load sample menu</button></div>
+    <div class="form"><input id="pName" placeholder="Item name"><select id="pCat"></select><input id="pPrice" type="number" min="0" step="0.01" placeholder="Price"><input id="pStock" type="number" min="0" placeholder="Stock (blank = unlimited)"><input id="pCode" placeholder="Code / barcode"><input id="pEmoji" placeholder="Icon emoji e.g. 🍗 (optional)"><input id="pPhoto" type="file" accept="image/*"><button class="btn" data-act="saveP">Save</button></div>
+    <table><thead><tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody id="pTable"></tbody></table>
+  </div>
+  <div id="s-cats" class="card sub" style="display:none">
+    <h3 id="cTitle">Add category</h3>
+    <div class="form"><input id="cName" placeholder="Category name"><input id="cIcon" placeholder="Emoji icon e.g. 🍕"><input id="cColor" type="color" value="#5b3fb5"><button class="btn" data-act="saveC">Save</button></div>
+    <table><tbody id="cTable"></tbody></table>
+  </div>
+  <div id="s-hist" class="card sub" style="display:none">
+    <div class="row"><h3>Sales history</h3><button class="btn" data-act="csv">Export CSV</button></div>
+    <input id="salesSearch" placeholder="Search by bill number, customer or item..." style="margin-bottom:8px">
+    <table><thead><tr><th>#</th><th>Date</th><th>Items</th><th>Total</th><th></th></tr></thead><tbody id="salesTable"></tbody></table>
+  </div>
+  <div id="s-set" class="card sub" style="display:none">
+    <h3>Settings (this device)</h3>
+    <div class="form"><div><small>Tax rate %</small><input id="setTax" type="number" min="0" step="0.01"></div><div><small>Number of tables</small><input id="setTables" type="number" min="0"></div><button class="btn" data-act="saveSet" style="align-self:end">Save settings</button></div>
+    <h3>Cash drawer</h3>
+    <div class="row" style="justify-content:flex-start;flex-wrap:wrap">
+      <select id="drawerMode" style="width:auto"><option value="native">Windows printer (desktop app)</option><option value="driver">Via printer driver</option><option value="usb">USB printer</option><option value="serial">Serial/COM port</option></select>
+      <select id="drawerPrinter" style="width:auto"><option value="">Default printer</option></select><button class="btn" id="drawerBtn">Connect</button><button id="testDrawerBtn">Test drawer</button><span id="drawerStatus" style="font-size:12px"></span></div>
+    <p><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="showPreview" style="width:auto"> Show a receipt preview before printing</label></p>
+    <p><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="silentPrint" style="width:auto"> Print receipts without the print window (desktop app, uses the printer chosen above)</label></p>
+    <p><button class="btn r" id="logoutBtn">Log out</button></p>
+  </div>
+</section>
+
+<div id="bottom">
+  <button data-act="nav" data-v="home" id="n-home" class="on">Home</button>
+  <button data-act="nav" data-v="orders" id="n-orders">Orders</button>
+  <button class="fab" data-act="nav" data-v="menu" title="New order">+</button>
+  <button data-act="nav" data-v="tables" id="n-tables">Tables</button>
+  <button data-act="nav" data-v="more" id="n-more">More</button>
+</div>
+<div id="receipt"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc, runTransaction, orderBy, query, limit }
+  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyAQ1BCZpelpMFPnoFoyahJnf7q-thl6UbE",
+  authDomain: "pos-system-75313.firebaseapp.com",
+  projectId: "pos-system-75313",
+  storageBucket: "pos-system-75313.firebasestorage.app",
+  messagingSenderId: "207622808693",
+  appId: "1:207622808693:web:a7a08e36b122d10aa1043c"
+};
+const fbApp=initializeApp(firebaseConfig), fdb=getFirestore(fbApp), auth=getAuth(fbApp);
+const r2=n=>Math.round(n*100)/100;
+const SHOP_NAME="My Shop", SHOP_ADDRESS="Your address here", CURRENCY="Rs.";
+const $=id=>document.getElementById(id);
+const money=n=>CURRENCY+" "+Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function load(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch(e){return f}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+const toast=m=>{const t=$("toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",1800)};
+
+let products=[],categories=[],orders=[],sales=[],cart=[],editingId=null,editingCat=null;
+let activeCat="All",ordFilter="all",payMethod="cash";
+let taxRate=load("taxRate",0),tableCount=load("tableCount",10);
+const PAL=["#b91c1c","#5b3fb5","#86198f","#8a6a2f","#1e2a78","#276749","#c2410c","#0f766e"];
+const autoColor=n=>PAL[[...String(n)].reduce((a,c)=>a+c.charCodeAt(0),0)%PAL.length];
+const findProduct=id=>products.find(p=>p.id===id);
+const initials=n=>(n||"Guest").split(" ").filter(Boolean).map(w=>w[0]).slice(0,2).join("").toUpperCase()||"G";
+const STATUS={progress:["In Progress","#f6b100"],ready:["Ready to serve","#22c55e"],paid:["Paid","#60a5fa"]};
+
+/* ---------- database helpers ---------- */
+const col=n=>collection(fdb,n);
+const getAll=async(n,q)=>(await getDocs(q||col(n))).docs.map(d=>({id:d.id,...d.data()}));
+const put=(n,id,d)=>setDoc(doc(fdb,n,id),d,{merge:true});
+const del=(n,id)=>deleteDoc(doc(fdb,n,id));
+async function refresh(){
+  [products,categories,orders,sales]=await Promise.all([
+    getAll("products"),getAll("categories"),
+    getAll("orders",query(col("orders"),orderBy("date","desc"),limit(200))),
+    getAll("sales",query(col("sales"),orderBy("date","desc"),limit(200)))]);
+  renderAll();
+}
+function allCats(){
+  const list=categories.map(c=>({...c})),names=new Set(list.map(c=>c.name));
+  products.forEach(p=>{if(!names.has(p.category)){names.add(p.category);list.push({name:p.category,virtual:true})}});
+  return list.sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+/* ---------- saving a payment (bill) ---------- */
+function createSale({order,method,cash}){
+  return runTransaction(fdb,async tx=>{
+    const cr=doc(fdb,"meta","counter"),counter=await tx.get(cr),lines=[];
+    let subtotal=0;
+    for(const i of order.items){
+      const ref=doc(fdb,"products",i.id),snap=await tx.get(ref);
+      if(!snap.exists())throw new Error(i.name+" no longer exists");
+      const p=snap.data();
+      if(p.stock!==null&&i.qty>p.stock)throw new Error("Not enough stock for "+p.name);
+      subtotal+=p.price*i.qty;lines.push({ref,p,qty:i.qty});
+    }
+    subtotal=r2(subtotal);
+    const tax=r2(subtotal*(order.taxRate||0)/100),total=r2(subtotal+tax);
+    method=method==="cash"?"cash":"online";
+    if(method==="online")cash=total;
+    if(!(cash>=total))throw new Error("Cash received is less than the total");
+    const billNo=(counter.exists()?counter.data().last:0)+1;
+    tx.set(cr,{last:billNo});
+    for(const{ref,p,qty}of lines)if(p.stock!==null)tx.update(ref,{stock:p.stock-qty});
+    const sale={billNo,date:new Date().toISOString(),subtotal,discount:0,tax,taxRate:order.taxRate||0,total,method,cash,change:r2(cash-total),
+      orderNo:order.orderNo,customer:order.customer||"",type:order.type,table:order.table||"",
+      items:lines.map(l=>({name:l.p.name,price:l.p.price,qty:l.qty}))};
+    tx.set(doc(col("sales")),sale);
+    tx.update(doc(fdb,"orders",order.id),{status:"paid",billNo,method});
+    return sale;
+  });
+}
+
+/* ---------- navigation ---------- */
+function show(v){
+  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("active",s.id==="v-"+v));
+  document.querySelectorAll("#bottom button[id]").forEach(b=>b.classList.toggle("on",b.id==="n-"+v));
+  renderAll();window.scrollTo(0,0);
+}
+function renderAll(){renderHome();renderMenu();renderOrders();renderTables();renderMore()}
+setInterval(()=>{const d=new Date();$("clock").textContent=d.toLocaleTimeString();$("dateTxt").textContent=d.toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"})},1000);
+
+/* ---------- HOME ---------- */
+function orderRow(o){
+  const[s,c]=STATUS[o.status]||STATUS.progress;
+  return `<div class="orow"><div class="av">${esc(initials(o.customer))}</div><div class="mid"><b>${esc(o.customer||"Guest")}</b><br><small>#${o.orderNo} · ${o.items.reduce((a,i)=>a+i.qty,0)} items · ${esc(o.type)}</small></div>
+  ${o.table?`<span class="badge">Table No: ${esc(o.table)}</span>`:""}<div class="st" style="color:${c}">● ${s}</div></div>`;
+}
+function renderHome(){
+  const h=new Date().getHours();
+  $("greet").textContent=(h<12?"Good Morning":h<18?"Good Afternoon":"Good Evening")+"!";
+  const day=d=>new Date(d).toDateString(),t=day(Date.now()),y=day(Date.now()-864e5);
+  const sum=d=>sales.filter(s=>day(s.date)===d).reduce((a,s)=>a+s.total,0),a=sum(t),b=sum(y);
+  $("earn").textContent=money(a);
+  $("earnPct").textContent=b>0?((a-b)/b*100).toFixed(1)+"% vs yesterday":"No sales yesterday";
+  $("inprog").textContent=orders.filter(o=>o.status==="progress").length;
+  $("readyCnt").textContent=orders.filter(o=>o.status==="ready").length+" ready to serve";
+  const q=$("homeSearch").value.trim().toLowerCase();
+  $("recent").innerHTML=orders.filter(o=>!q||(o.customer||"").toLowerCase().includes(q)||String(o.orderNo)===q).slice(0,8).map(orderRow).join("")||'<div class="empty">No orders yet.</div>';
+  const cnt={};sales.forEach(s=>s.items.forEach(i=>cnt[i.name]=(cnt[i.name]||0)+i.qty));
+  $("popular").innerHTML=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([n,c],i)=>{
+    const p=products.find(x=>x.name===n);
+    return `<div class="pop"><span class="rk">0${i+1}</span>${p&&p.photo?`<img src="${p.photo}">`:`<span class="ph">${esc(p?(p.emoji||guessEmoji(p.name,p.category)):guessEmoji(n,""))}</span>`}<div><b>${esc(n)}</b><small>Sold: ${c}</small></div></div>`}).join("")||'<div class="empty">Best sellers show up after your first sales.</div>';
+}
+
+/* ---------- MENU / NEW ORDER ---------- */
+function totals(){
+  const subtotal=r2(cart.reduce((a,c)=>a+(findProduct(c.id)?.price||0)*c.qty,0)),tax=r2(subtotal*taxRate/100);
+  return{subtotal,tax,total:r2(subtotal+tax),count:cart.reduce((a,c)=>a+c.qty,0)};
+}
+/* ---------- item pictures: photo if you uploaded one, otherwise a matching food icon ---------- */
+const EMOJI_RULES=[["pizza","🍕"],["burger","🍔"],["sandwich","🥪"],["fries","🍟"],["naan","🫓"],["roti","🫓"],["paratha","🫓"],["bread","🫓"],["cheese","🧀"],
+ ["seekh","🍢"],["tikka","🍢"],["kebab","🍢"],["skewer","🍢"],["ribs","🍖"],["bbq","🍗"],["tandoori","🍗"],["chop","🥩"],["steak","🥩"],["mutton","🥩"],["chicken","🍗"],
+ ["wing","🍗"],["prawn","🍤"],["shrimp","🍤"],["cuttlefish","🦑"],["squid","🦑"],["fish","🐟"],["crab","🦀"],["biryani","🍛"],["curry","🍛"],["kottu","🍜"],["noodle","🍜"],
+ ["pasta","🍝"],["fried rice","🍚"],["rice","🍚"],["nasi","🍳"],["egg","🍳"],["soup","🍲"],["salad","🥗"],["roll","🥟"],["samosa","🥟"],["dumpling","🥟"],["mushroom","🍄"],
+ ["dhal","🥣"],["paneer","🧈"],["cake","🍰"],["pudding","🍮"],["watalappan","🍮"],["brownie","🍫"],["chocolate","🍫"],["ice cream","🍨"],["jamun","🍡"],["dessert","🍰"],
+ ["lassi","🥭"],["mango","🥭"],["lime","🍋"],["lemon","🍋"],["coffee","☕"],["tea","🍵"],["milkshake","🥛"],["milk","🥛"],["water","💧"],["juice","🧃"],["cola","🥤"],["soda","🥤"],["drink","🥤"],["beer","🍺"],["wine","🍷"]];
+function guessEmoji(name,cat){
+  const t=(name+" "+(cat||"")).toLowerCase(),n=String(name).toLowerCase();
+  for(const[k,e]of EMOJI_RULES)if(n.includes(k))return e;
+  for(const[k,e]of EMOJI_RULES)if(t.includes(k))return e;
+  return "🍽️";
+}
+const catColor=n=>(categories.find(c=>c.name===n)||{}).color||autoColor(n);
+function prodImg(p){
+  if(p.photo)return `<img src="${p.photo}" alt="">`;
+  const c=catColor(p.category);
+  return `<div class="eimg" style="background:linear-gradient(135deg,${c},${c}66)">${esc(p.emoji||guessEmoji(p.name,p.category))}</div>`;
+}
+function renderMenu(){
+  cart=cart.filter(c=>findProduct(c.id));
+  const cats=allCats(),n=c=>products.filter(p=>p.category===c).length;
+  $("cats").innerHTML=`<div class="cat ${activeCat==="All"?"on":""}" data-act="cat" data-c="All" style="background:#374151">🍴 All<small>${products.length} Items</small></div>`+
+    cats.map(c=>`<div class="cat ${activeCat===c.name?"on":""}" data-act="cat" data-c="${esc(c.name)}" style="background:${c.color||autoColor(c.name)}">${esc(c.icon||guessEmoji(c.name,""))} ${esc(c.name)}<small>${n(c.name)} Items</small></div>`).join("");
+  const q=$("search").value.trim().toLowerCase();
+  const list=products.filter(p=>(activeCat==="All"||p.category===activeCat)&&(!q||p.name.toLowerCase().includes(q)||(p.code||"").toLowerCase().includes(q)));
+  $("pgrid").innerHTML=list.map(p=>{
+    const l=cart.find(c=>c.id===p.id),out=p.stock!==null&&p.stock<=0;
+    return `<div class="pcard ${out?"out":""}"><div class="row"><b>${esc(p.name)}</b><button class="cartbtn" data-act="add" data-id="${p.id}">🛒</button></div>
+    ${prodImg(p)}<small>${p.code?esc(p.code)+" · ":""}${p.stock===null?"":"Stock: "+p.stock}</small>
+    <div class="row"><b>${money(p.price)}</b><div class="step"><button data-act="dec" data-id="${p.id}">−</button><span>${l?l.qty:0}</span><button data-act="add" data-id="${p.id}">+</button></div></div></div>`}).join("")||'<div class="empty">No items here. Add some in More &gt; Products.</div>';
+  $("lines").innerHTML=cart.map(c=>{const p=findProduct(c.id);return `<div class="line"><div class="row"><span>${esc(p.name)}</span><span>x${c.qty}</span></div><div class="row"><button class="r btn" data-act="rm" data-id="${c.id}">🗑</button><b>${money(p.price*c.qty)}</b></div></div>`}).join("")||'<div class="empty">Tap an item to add it.</div>';
+  const t=totals();
+  $("itemsLbl").textContent="Items("+t.count+")";$("sub").textContent=money(t.subtotal);
+  $("taxLbl").textContent="Tax("+taxRate+"%)";$("tax").textContent=money(t.tax);$("total").textContent=money(t.total);
+  $("oAv").textContent=initials($("oName").value);
+  $("pcash").classList.toggle("on",payMethod==="cash");$("ponline").classList.toggle("on",payMethod==="online");
+}
+function addToCart(id){
+  const p=findProduct(id);if(!p)return;const l=cart.find(c=>c.id===id),n=l?l.qty:0;
+  if(p.stock!==null&&n+1>p.stock)return alert("Not enough stock for "+p.name);
+  l?l.qty++:cart.push({id,qty:1});renderMenu();
+}
+function decCart(id){const l=cart.find(c=>c.id===id);if(!l)return;if(--l.qty<=0)cart=cart.filter(c=>c!==l);renderMenu()}
+function clearBill(){cart=[];["oName","oTable"].forEach(i=>$(i).value="");$("oType").value="Dine in";renderMenu()}
+function draftOrder(){
+  const t=totals();
+  return{items:cart.map(c=>{const p=findProduct(c.id);return{id:p.id,name:p.name,price:p.price,qty:c.qty}}),subtotal:t.subtotal,tax:t.tax,taxRate,total:t.total,
+    customer:$("oName").value.trim(),type:$("oType").value,table:$("oTable").value.trim()};
+}
+async function placeOrder(payNow){
+  if(!cart.length)return alert("The bill is empty.");
+  const d=draftOrder();
+  try{
+    const order=await runTransaction(fdb,async tx=>{
+      const cr=doc(fdb,"meta","orderCounter"),c=await tx.get(cr),orderNo=(c.exists()?c.data().last:100)+1;
+      const o={...d,orderNo,status:"progress",method:payMethod,date:new Date().toISOString()},ref=doc(col("orders"));
+      tx.set(cr,{last:orderNo});tx.set(ref,o);return{id:ref.id,...o};
+    });
+    clearBill();await refresh();
+    if(payNow)await payOrder(order.id,payMethod);else toast("Order #"+order.orderNo+" placed");
+  }catch(e){alert("Could not place the order: "+e.message)}
+}
+function askCash(total){ // in-page box (Electron does not support prompt())
+  return new Promise(res=>{
+    const box=$("cashBox"),inp=$("cashIn");
+    $("cashTotal").textContent="Total: "+money(total);inp.value=total;$("cashChg").textContent=money(0);
+    box.style.display="flex";inp.focus();inp.select();
+    const done=v=>{box.style.display="none";inp.oninput=inp.onkeydown=$("cashOk").onclick=$("cashCancel").onclick=null;res(v)};
+    inp.oninput=()=>$("cashChg").textContent=money(Math.max((parseFloat(inp.value)||0)-total,0));
+    inp.onkeydown=e=>{if(e.key==="Enter")$("cashOk").click();if(e.key==="Escape")done(null)};
+    $("cashOk").onclick=()=>{const v=parseFloat(inp.value);if(!(v>=total))return alert("Cash received is less than the total.");done(v)};
+    $("cashCancel").onclick=()=>done(null);
+  });
+}
+function paidPopup(sale){ // "Payment done" message, then the receipt preview follows
+  return new Promise(res=>{
+    $("paidInfo").innerHTML="Bill #"+sale.billNo+" &middot; "+money(sale.total)+(sale.method==="cash"&&sale.change>0?"<br>Change: <b>"+money(sale.change)+"</b>":"");
+    $("paidBox").style.display="flex";
+    const done=()=>{clearTimeout(t);$("paidBox").style.display="none";$("paidOk").onclick=null;res()};
+    const t=setTimeout(done,sale.change>0?6000:2000);   // longer when there is change to give back
+    $("paidOk").onclick=done;$("paidOk").focus();
+  });
+}
+async function payOrder(id,method){
+  const o=orders.find(x=>x.id===id);if(!o)return;
+  let cash=o.total;
+  if(method==="cash"){
+    openDrawer();
+    const v=await askCash(o.total);if(v===null)return;cash=v;
+  }
+  try{const sale=await createSale({order:o,method,cash});await refresh();await paidPopup(sale);printReceipt(sale)}
+  catch(e){alert("Could not complete the payment: "+e.message)}
+}
+
+/* ---------- ORDERS ---------- */
+function renderOrders(){
+  const tabs=[["all","All"],["progress","In Progress"],["ready","Ready"],["paid","Paid"]];
+  $("ordTabs").innerHTML=tabs.map(([k,l])=>`<button data-act="filt" data-k="${k}" class="${ordFilter===k?"on":""}">${l}</button>`).join("");
+  const q=$("ordSearch").value.trim().toLowerCase();
+  const list=orders.filter(o=>(ordFilter==="all"||o.status===ordFilter)&&(!q||(o.customer||"").toLowerCase().includes(q)||String(o.orderNo)===q||String(o.table)===q));
+  $("ordList").innerHTML=list.map(o=>{
+    const[s,c]=STATUS[o.status]||STATUS.progress;
+    const acts=o.status==="paid"?`<button data-act="rcpt" data-id="${o.id}">Receipt</button>`:
+      (o.status==="progress"?`<button class="btn y" data-act="ready" data-id="${o.id}">Mark Ready</button>`:"")+
+      `<button class="btn g" data-act="pay" data-m="cash" data-id="${o.id}">Pay Cash</button><button class="btn" data-act="pay" data-m="online" data-id="${o.id}">Pay Online</button><button class="btn r" data-act="cancel" data-id="${o.id}">Cancel</button>`;
+    return `<div class="ocard">${orderRow(o)}<small>${o.items.map(i=>esc(i.name)+" x"+i.qty).join(", ")}</small>
+    <div class="row"><small>${new Date(o.date).toLocaleString()}</small><b>${money(o.total)}</b></div><div class="acts">${acts}</div></div>`}).join("")||'<div class="empty">No orders.</div>';
+}
+
+/* ---------- TABLES ---------- */
+function renderTables(){
+  let h="";
+  for(let i=1;i<=tableCount;i++){
+    const o=orders.find(x=>x.status!=="paid"&&x.type==="Dine in"&&String(x.table)===String(i));
+    h+=`<div class="tbl ${o?"busy":""}" data-act="table" data-t="${i}"><b style="font-size:20px">Table ${i}</b><br><small>${o?"Occupied · #"+o.orderNo:"Free"}</small></div>`;
+  }
+  $("tblGrid").innerHTML=h||'<div class="empty">Set the number of tables in More &gt; Settings.</div>';
+}
+
+/* ---------- MORE: products, categories, history, settings ---------- */
+function renderMore(){
+  const cats=allCats();
+  const sel=$("pCat"),cur=sel.value;
+  sel.innerHTML=cats.map(c=>`<option>${esc(c.name)}</option>`).join("")||"<option>General</option>";
+  if(cur)sel.value=cur;
+  $("pTable").innerHTML=[...products].sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name)).map(p=>`<tr><td>${p.photo?`<img src="${p.photo}" width="36" height="36" style="border-radius:6px;object-fit:cover">`:`<span style="font-size:26px">${esc(p.emoji||guessEmoji(p.name,p.category))}</span>`}</td><td>${esc(p.name)}<br><small>${esc(p.code||"")}</small></td><td>${esc(p.category)}</td><td>${money(p.price)}</td><td>${p.stock===null?"∞":p.stock}</td><td><button data-act="editP" data-id="${p.id}">Edit</button> <button class="btn r" data-act="delP" data-id="${p.id}">Del</button></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No items yet.</td></tr>';
+  $("cTable").innerHTML=cats.map(c=>`<tr><td><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${c.color||autoColor(c.name)}"></span> ${esc(c.icon||guessEmoji(c.name,""))} ${esc(c.name)}</td><td>${products.filter(p=>p.category===c.name).length} items</td><td class="right">${c.virtual?`<button data-act="editC" data-n="${esc(c.name)}">Customize</button>`:`<button data-act="editC" data-id="${c.id}">Edit</button> <button class="btn r" data-act="delC" data-id="${c.id}">Del</button>`}</td></tr>`).join("");
+  const q=$("salesSearch").value.trim().toLowerCase();
+  $("salesTable").innerHTML=sales.filter(s=>!q||String(s.billNo)===q||(s.customer||"").toLowerCase().includes(q)||s.items.some(i=>i.name.toLowerCase().includes(q))).map(s=>`<tr><td>${s.billNo}</td><td>${new Date(s.date).toLocaleString()}</td><td>${s.items.map(i=>esc(i.name)+" x"+i.qty).join(", ")}</td><td>${money(s.total)}</td><td><button data-act="reprint" data-id="${s.id}">Reprint</button></td></tr>`).join("")||'<tr><td colspan="5" class="empty">No sales yet.</td></tr>';
+}
+// Shrinks a photo to about 200px so it fits inside the Firestore document (free, no Storage needed)
+function shrinkPhoto(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 200 / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL("image/jpeg", 0.7));
+    };
+    img.onerror = () => reject(new Error("Could not read that image"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+
+async function saveProduct(){
+  const name=$("pName").value.trim(),price=parseFloat($("pPrice").value),category=$("pCat").value||"General";
+  const st=$("pStock").value.trim(),stock=st===""?null:parseInt(st,10);
+  if(!name||isNaN(price)||price<0||(stock!==null&&(isNaN(stock)||stock<0)))return alert("Please enter a name and a valid price. Stock can be left blank.");
+  try{
+    const file=$("pPhoto").files[0],old=editingId?findProduct(editingId):null;
+    const photo=file?await shrinkPhoto(file):(old&&old.photo)||"";
+    const item={name,category,price,stock,code:$("pCode").value.trim(),emoji:$("pEmoji").value.trim(),photo};
+    if(editingId)await put("products",editingId,item);else await addDoc(col("products"),item);
+    editingId=null;$("pTitle").textContent="Add item";["pName","pPrice","pStock","pCode","pEmoji","pPhoto"].forEach(i=>$(i).value="");
+    await refresh();toast("Saved");
+  }catch(e){alert("Could not save: "+e.message)}
+}
+async function saveCategory(){
+  const name=$("cName").value.trim();if(!name)return alert("Enter a category name.");
+  const d={name,icon:$("cIcon").value.trim()||"🍽️",color:$("cColor").value};
+  try{
+    if(editingCat&&editingCat.id){
+      if(editingCat.name!==name)for(const p of products.filter(p=>p.category===editingCat.name))await put("products",p.id,{category:name});
+      await put("categories",editingCat.id,d);
+    }else await addDoc(col("categories"),d);
+    editingCat=null;$("cTitle").textContent="Add category";["cName","cIcon"].forEach(i=>$(i).value="");
+    await refresh();toast("Saved");
+  }catch(e){alert("Could not save: "+e.message)}
+}
+async function loadSample(){
+  const cats={"Starters":["🥟","#b91c1c"],"BBQ & Grill":["🍖","#9a3412"],"Breads & Naan":["🫓","#8a6a2f"],"Rice & Mains":["🍛","#5b3fb5"],"Soups":["🍲","#0f766e"],"Salads":["🥗","#276749"],"Pizza & Burgers":["🍕","#c2410c"],"Desserts":["🍰","#1e2a78"],"Drinks":["🍹","#86198f"]};
+  const items=[
+   ["Spring Rolls (4)","Starters",450,"🥟"],["Chicken Wings (6)","Starters",750,"🍗"],["French Fries","Starters",400,"🍟"],["Garlic Mushrooms","Starters",550,"🍄"],["Hot Butter Cuttlefish","Starters",1100,"🦑"],["Fish Cutlets (3)","Starters",450,"🐟"],
+   ["BBQ Chicken Quarter","BBQ & Grill",1100,"🍗"],["BBQ Chicken Half","BBQ & Grill",1900,"🍗"],["BBQ Pork Ribs","BBQ & Grill",2400,"🍖"],["Chicken Tikka","BBQ & Grill",1300,"🍢"],["Chicken Seekh Kebab","BBQ & Grill",1200,"🍢"],["Mutton Seekh Kebab","BBQ & Grill",1500,"🍢"],["Tandoori Chicken (Half)","BBQ & Grill",1800,"🍗"],["Mutton Chops","BBQ & Grill",2200,"🥩"],["Grilled Fish","BBQ & Grill",1800,"🐟"],["Grilled Prawns","BBQ & Grill",2500,"🍤"],["BBQ Mixed Platter","BBQ & Grill",4500,"🍖"],
+   ["Plain Naan","Breads & Naan",120,"🫓"],["Butter Naan","Breads & Naan",150,"🫓"],["Garlic Naan","Breads & Naan",180,"🫓"],["Cheese Naan","Breads & Naan",250,"🧀"],["Cheese & Garlic Naan","Breads & Naan",280,"🧀"],["Tandoori Roti","Breads & Naan",100,"🫓"],["Paratha","Breads & Naan",130,"🫓"],["Roti","Breads & Naan",60,"🫓"],
+   ["Chicken Biryani","Rice & Mains",1100,"🍛"],["Mutton Biryani","Rice & Mains",1500,"🍛"],["Chicken Fried Rice","Rice & Mains",850,"🍚"],["Nasi Goreng","Rice & Mains",950,"🍳"],["Chicken Kottu","Rice & Mains",900,"🍜"],["Cheese Kottu","Rice & Mains",1100,"🧀"],["Butter Chicken","Rice & Mains",1250,"🍗"],["Chicken Curry","Rice & Mains",950,"🍛"],["Dhal Curry","Rice & Mains",450,"🥣"],["Paneer Butter Masala","Rice & Mains",1100,"🧈"],["Fish Curry & Rice","Rice & Mains",800,"🐟"],
+   ["Chicken Soup","Soups",450,"🍲"],["Tomato Soup","Soups",400,"🍅"],["Cream of Mushroom","Soups",480,"🍄"],["Hot & Sour Soup","Soups",500,"🥣"],
+   ["Garden Salad","Salads",450,"🥗"],["Caesar Salad","Salads",750,"🥗"],["Greek Salad","Salads",800,"🥗"],["Chicken Salad","Salads",850,"🥗"],
+   ["Margherita Pizza","Pizza & Burgers",1400,"🍕"],["Chicken Tikka Pizza","Pizza & Burgers",1900,"🍕"],["BBQ Chicken Pizza","Pizza & Burgers",1900,"🍕"],["Chicken Burger","Pizza & Burgers",950,"🍔"],["Beef Burger","Pizza & Burgers",1200,"🍔"],["Cheese Burger","Pizza & Burgers",1100,"🍔"],["Club Sandwich","Pizza & Burgers",850,"🥪"],
+   ["Watalappan","Desserts",300,"🍮"],["Chocolate Brownie","Desserts",450,"🍫"],["Ice Cream (2 scoops)","Desserts",400,"🍨"],["Gulab Jamun","Desserts",350,"🍡"],["Cheesecake","Desserts",650,"🍰"],["Caramel Pudding","Desserts",350,"🍮"],
+   ["Fresh Lime Juice","Drinks",250,"🍋"],["Mango Lassi","Drinks",350,"🥭"],["Mango Juice","Drinks",350,"🥭"],["Iced Coffee","Drinks",350,"☕"],["Milk Tea","Drinks",150,"🍵"],["Mint Lemonade","Drinks",300,"🍹"],["Milkshake","Drinks",450,"🥛"],["Soft Drink","Drinks",200,"🥤"],["Mineral Water","Drinks",100,"💧"]];
+  if(!confirm("Add about "+items.length+" sample items (BBQ, naan, mains, drinks...)? Items that already exist are skipped. Prices are examples; edit them in Products."))return;
+  try{
+    const haveC=new Set(categories.map(c=>c.name)),haveP=new Set(products.map(p=>p.name.toLowerCase()));
+    const jobs=[];
+    for(const[n,[icon,color]]of Object.entries(cats))if(!haveC.has(n))jobs.push(addDoc(col("categories"),{name:n,icon,color}));
+    for(const[name,category,price,emoji]of items)if(!haveP.has(name.toLowerCase()))jobs.push(addDoc(col("products"),{name,category,price,stock:null,code:"",emoji,photo:""}));
+    await Promise.all(jobs);await refresh();toast("Added "+jobs.length+" entries");
+  }catch(e){alert("Could not add the sample menu: "+e.message)}
+}
+function exportCSV(){
+  if(!sales.length)return alert("No sales to export.");
+  const rows=[["Bill","Order","Date","Customer","Type","Table","Items","Subtotal","Tax","Total","Payment"]];
+  sales.forEach(s=>rows.push([s.billNo,s.orderNo||"",new Date(s.date).toLocaleString(),s.customer||"",s.type||"",s.table||"",s.items.map(i=>i.name+" x"+i.qty).join("; "),s.subtotal,s.tax||0,s.total,s.method]));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="sales-"+new Date().toISOString().slice(0,10)+".csv";a.click();
+}
+
+/* ---------- RECEIPT ---------- */
+function printReceipt(s){
+  const d=new Date(s.date||Date.now());
+  $("receipt").innerHTML=`<div style="text-align:center"><strong>${esc(SHOP_NAME)}</strong><br>${esc(SHOP_ADDRESS)}</div><hr>
+  ${s.billNo?"Bill #"+s.billNo:"ORDER (not paid yet)"}${s.orderNo?" · Order #"+s.orderNo:""}<br>${d.toLocaleString()}<br>
+  ${esc(s.customer||"")} ${s.type?"· "+esc(s.type):""} ${s.table?"· Table "+esc(s.table):""}<hr>
+  ${s.items.map(i=>`${esc(i.name)}<br>&nbsp;&nbsp;${i.qty} x ${money(i.price)} = ${money(i.qty*i.price)}`).join("<br>")}<hr>
+  Subtotal: ${money(s.subtotal)}<br>${s.tax?`Tax (${s.taxRate}%): ${money(s.tax)}<br>`:""}<strong>TOTAL: ${money(s.total)}</strong><br>
+  ${s.billNo?(s.method==="cash"?"Cash: "+money(s.cash)+"<br>Change: "+money(s.change):"Paid online"):""}<hr><div style="text-align:center">Thank you! Come again.</div>`;
+  $("receiptPreview").innerHTML=$("receipt").innerHTML;
+  if($("showPreview").checked){$("previewBox").style.display="flex";return}
+  doPrint();
+}
+function doPrint(){
+  const native=window.posNative&&$("silentPrint").checked;
+  if(native)window.posNative.printSilent(load("drawerPrinter","")).then(r=>{if(r&&r.error){alert("Silent print failed ("+r.error+"). Opening the normal print window.");window.print()}});
+  else window.print();
+}
+
+/* ---------- CASH DRAWER ---------- */
+const KICK = new Uint8Array([0x1B, 0x70, 0x00, 0x19, 0xFA]);
+let drawerMode = load("drawerMode", window.posNative ? "native" : "driver");
+let serialPort = null;
+let usbDev = null, usbEndpoint = null;
+
+function setDrawerStatus(text, ok) {
+  $("drawerStatus").textContent = text;
+  $("drawerStatus").style.color = ok === false ? "#fca5a5" : "#86efac";
+}
+
+async function prepareUsb() {
+  await usbDev.open();
+  if (usbDev.configuration === null) await usbDev.selectConfiguration(1);
+  for (const iface of usbDev.configuration.interfaces) {
+    for (const alt of iface.alternates) {
+      const ep = alt.endpoints.find(e => e.direction === "out" && e.type === "bulk");
+      if (ep) {
+        await usbDev.claimInterface(iface.interfaceNumber);
+        usbEndpoint = ep.endpointNumber;
+        return;
+      }
+    }
+  }
+  throw new Error("no printer output found on this USB device");
+}
+
+async function connectDrawer() {
+  try {
+    if (drawerMode === "serial") {
+      if (!("serial" in navigator)) throw new Error("use Chrome or Edge on a computer");
+      serialPort = await navigator.serial.requestPort();
+      await serialPort.open({ baudRate: 9600 });
+      setDrawerStatus("Connected (serial)", true);
+    } else if (drawerMode === "usb") {
+      if (!("usb" in navigator)) throw new Error("use Chrome or Edge on a computer");
+      usbDev = await navigator.usb.requestDevice({ filters: [] });
+      await prepareUsb();
+      setDrawerStatus("Connected (USB)", true);
+    } else if (drawerMode === "native") {
+      setDrawerStatus(window.posNative ? "Ready (uses the Windows printer)" : "Only works in the desktop app", !!window.posNative);
+    } else {
+      setDrawerStatus("Drawer opens via printer driver", true);
+    }
+  } catch (e) {
+    setDrawerStatus("Not connected: " + e.message, false);
+  }
+}
+
+async function openDrawer() {
+  try {
+    if (drawerMode === "serial" && serialPort) {
+      const w = serialPort.writable.getWriter();
+      await w.write(KICK);
+      w.releaseLock();
+    } else if (drawerMode === "usb" && usbDev) {
+      await usbDev.transferOut(usbEndpoint, KICK);
+    } else if (drawerMode === "native" && window.posNative) {
+      const r = await window.posNative.openDrawer(load("drawerPrinter", ""));
+      if (r && r.error) setDrawerStatus("Drawer error: " + r.error, false); else setDrawerStatus("Drawer signal sent", true);
+    }
+  } catch (e) {
+    setDrawerStatus("Drawer error: " + e.message, false);
+  }
+}
+
+// Re-connect automatically to a device you already approved earlier
+async function restoreDrawer() {
+  try {
+    if (drawerMode === "serial" && "serial" in navigator) {
+      const ports = await navigator.serial.getPorts();
+      if (ports.length) { serialPort = ports[0]; await serialPort.open({ baudRate: 9600 }); setDrawerStatus("Connected (serial)", true); }
+    } else if (drawerMode === "usb" && "usb" in navigator) {
+      const devs = await navigator.usb.getDevices();
+      if (devs.length) { usbDev = devs[0]; await prepareUsb(); setDrawerStatus("Connected (USB)", true); }
+    }
+  } catch (e) { /* press Connect again */ }
+}
+
+$("drawerMode").value = drawerMode;
+$("drawerMode").addEventListener("change", () => {
+  drawerMode = $("drawerMode").value;
+  save("drawerMode", drawerMode);
+  setDrawerStatus("", true);
+  restoreDrawer();
+});
+$("drawerBtn").addEventListener("click", connectDrawer);
+$("testDrawerBtn").addEventListener("click", () => {
+  if (drawerMode === "native" && !window.posNative) {
+    alert("This mode only works inside the desktop app.");
+  } else if (drawerMode === "driver") {
+    alert("In this mode the drawer opens when a receipt prints. Turn on 'open cash drawer' in your printer driver settings.");
+  } else {
+    openDrawer();
+  }
+});
+
+
+$("drawerMode").value=drawerMode;
+if(window.posNative){
+  window.posNative.listPrinters().then(list=>{
+    const sel=$("drawerPrinter");
+    sel.innerHTML='<option value="">Default printer</option>'+list.map(n=>`<option>${esc(n)}</option>`).join("");
+    sel.value=load("drawerPrinter","");
+  });
+}
+$("showPreview").checked=load("showPreview",true);
+$("showPreview").addEventListener("change",()=>save("showPreview",$("showPreview").checked));
+$("previewClose").onclick=()=>{$("previewBox").style.display="none"};
+$("previewPrint").onclick=()=>{$("previewBox").style.display="none";doPrint()};
+$("silentPrint").checked=load("silentPrint",true);
+$("silentPrint").addEventListener("change",()=>save("silentPrint",$("silentPrint").checked));
+$("drawerPrinter").addEventListener("change",()=>save("drawerPrinter",$("drawerPrinter").value));
+setDrawerStatus("",true);if(drawerMode==="native")setDrawerStatus(window.posNative?"Ready (uses the Windows printer)":"Only works in the desktop app",!!window.posNative);
+restoreDrawer();
+
+/* ---------- CLICKS ---------- */
+["search","homeSearch","ordSearch","salesSearch","oName"].forEach(i=>$(i).addEventListener("input",()=>{renderMenu();renderHome();renderOrders();renderMore()}));
+$("search").addEventListener("keydown",e=>{ // barcode scanner: exact code goes straight on the bill
+  if(e.key!=="Enter")return;const p=products.find(x=>x.code&&x.code.toLowerCase()===$("search").value.trim().toLowerCase());
+  if(p){addToCart(p.id);$("search").value="";renderMenu()}
+});
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-act]");if(!el)return;e.preventDefault();
+  const a=el.dataset.act,id=el.dataset.id,D=el.dataset;
+  if(a==="nav")return show(D.v);
+  if(a==="cat"){activeCat=D.c;return renderMenu()}
+  if(a==="add")return addToCart(id);
+  if(a==="dec")return decCart(id);
+  if(a==="rm"){cart=cart.filter(c=>c.id!==id);return renderMenu()}
+  if(a==="setpay"){payMethod=D.m;return renderMenu()}
+  if(a==="clear")return clearBill();
+  if(a==="place")return placeOrder(false);
+  if(a==="placepay")return placeOrder(true);
+  if(a==="printdraft"){if(!cart.length)return alert("The bill is empty.");const d=draftOrder();return printReceipt({...d,date:Date.now()})}
+  if(a==="filt"){ordFilter=D.k;return renderOrders()}
+  if(a==="ready")return put("orders",id,{status:"ready"}).then(refresh);
+  if(a==="pay")return payOrder(id,D.m);
+  if(a==="cancel"){if(confirm("Cancel this order?"))del("orders",id).then(refresh);return}
+  if(a==="rcpt"){const o=orders.find(x=>x.id===id),s=sales.find(x=>x.billNo===o.billNo);return s?printReceipt(s):alert("Bill not found in the latest 200 sales.")}
+  if(a==="reprint")return printReceipt(sales.find(x=>x.id===id));
+  if(a==="table"){const o=orders.find(x=>x.status!=="paid"&&x.type==="Dine in"&&String(x.table)===D.t);
+    if(o){ordFilter="all";$("ordSearch").value=D.t;return show("orders")}
+    $("oTable").value=D.t;$("oType").value="Dine in";return show("menu")}
+  if(a==="sub"){document.querySelectorAll(".sub").forEach(s=>s.style.display=s.id==="s-"+D.s?"block":"none");
+    document.querySelectorAll("#moreTabs button").forEach(b=>b.classList.toggle("on",b===el));
+    if(D.s==="set"){$("setTax").value=taxRate;$("setTables").value=tableCount}return}
+  if(a==="editP"){const p=findProduct(id);editingId=id;$("pTitle").textContent="Edit item";$("pName").value=p.name;$("pCat").value=p.category;$("pPrice").value=p.price;$("pStock").value=p.stock??"";$("pCode").value=p.code||"";$("pEmoji").value=p.emoji||"";return window.scrollTo(0,0)}
+  if(a==="delP"){if(confirm("Delete this item? Old bills are not affected."))del("products",id).then(refresh);return}
+  if(a==="saveP")return saveProduct();
+  if(a==="saveC")return saveCategory();
+  if(a==="editC"){const c=id?categories.find(x=>x.id===id):{name:D.n};editingCat=c;$("cTitle").textContent="Edit category";$("cName").value=c.name;$("cIcon").value=c.icon||"";$("cColor").value=c.color||autoColor(c.name);return}
+  if(a==="delC"){if(confirm("Delete this category? Its items stay, but lose the colour/icon."))del("categories",id).then(refresh);return}
+  if(a==="sample")return loadSample();
+  if(a==="csv")return exportCSV();
+  if(a==="saveSet"){taxRate=Math.max(0,parseFloat($("setTax").value)||0);tableCount=Math.max(0,parseInt($("setTables").value)||0);save("taxRate",taxRate);save("tableCount",tableCount);toast("Settings saved");return renderAll()}
+});
+
+/* ---------- LOGIN ---------- */
+$("loginBtn").onclick=async()=>{
+  $("loginMsg").textContent="";
+  try{await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPass").value)}
+  catch(e){$("loginMsg").textContent="Login failed. Check your email and password."}
+};
+$("logoutBtn").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,user=>{
+  $("loginBox").style.display=user?"none":"flex";
+  if(user)refresh().catch(e=>alert("Cannot load data: "+e.message));
+});
+</script></body></html>
